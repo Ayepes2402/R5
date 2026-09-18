@@ -26,7 +26,6 @@ const endButton = document.querySelector("#end-button");
 const mobileFullscreenButton = document.querySelector("#mobile-fullscreen-button");
 
 let activeIndex = 0;
-const compactViewport = window.matchMedia("(max-aspect-ratio: 1 / 1)");
 let showHelp = false;
 let activeLanguage = localStorage.getItem("forum-language") || CONFIG.defaultLanguage;
 let transitionTimer = 0;
@@ -37,29 +36,21 @@ const visualSystem = new VisualSystem(canvas);
 const TITLE_HIGHLIGHTS = {
   "relevo-generacional": {
     es: [{ text: "RELEVO GENERACIONAL", tone: "cyan" }],
-    pt: [{ text: "RELEVO GERACIONAL", tone: "cyan" }],
   },
   "universidad-mundo": {
     es: [{ text: "La Universidad decidió encontrarse con el mundo.", tone: "cyan" }],
-    pt: [{ text: "A Universidade decidiu se encontrar com o mundo.", tone: "cyan" }],
   },
   impacto: {
     es: [{ text: "El impacto sí.", tone: "red" }],
-    pt: [{ text: "O impacto, sim.", tone: "red" }],
   },
   comunidad: {
     es: [
       { text: "comunidad", tone: "cyan" },
       { text: "transformación", tone: "magenta" },
     ],
-    pt: [
-      { text: "comunidade", tone: "cyan" },
-      { text: "transformação", tone: "magenta" },
-    ],
   },
   confianza: {
     es: [{ text: "confianza", tone: "magenta" }],
-    pt: [{ text: "confiança", tone: "magenta" }],
   },
   "nuevas-rutas": {
     es: [
@@ -67,38 +58,23 @@ const TITLE_HIGHLIGHTS = {
       { text: "camino", tone: "magenta" },
       { text: "nuevas rutas", tone: "red" },
     ],
-    pt: [
-      { text: "experiência", tone: "cyan" },
-      { text: "caminho", tone: "magenta" },
-      { text: "novas rotas", tone: "red" },
-    ],
   },
   "vision-generaciones": {
     es: [{ text: "Dos generaciones", tone: "cyan" }],
-    pt: [{ text: "Duas gerações", tone: "cyan" }],
   },
   "trabajan-juntas": {
     es: [
       { text: "crecimiento", tone: "cyan" },
       { text: "trabajan juntas", tone: "magenta" },
     ],
-    pt: [
-      { text: "crescimento", tone: "cyan" },
-      { text: "trabalham juntas", tone: "magenta" },
-    ],
   },
   "presente-joven": {
     es: [{ text: "presente", tone: "red" }],
-    pt: [{ text: "presente", tone: "red" }],
   },
   "futuro-construido": {
     es: [
       { text: "futuro", tone: "cyan" },
       { text: "Se construye", tone: "red" },
-    ],
-    pt: [
-      { text: "futuro", tone: "cyan" },
-      { text: "constrói", tone: "red" },
     ],
   },
 };
@@ -117,48 +93,7 @@ function makeQrPattern(element, value, imageUrl = "") {
     element.title = value;
     return;
   }
-
-  const size = 25;
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  const images = [];
-  const positions = [];
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const inFinder =
-        (x < 7 && y < 7) ||
-        (x >= size - 7 && y < 7) ||
-        (x < 7 && y >= size - 7);
-      const finderBorder =
-        inFinder &&
-        (x === 0 ||
-          y === 0 ||
-          x === 6 ||
-          y === 6 ||
-          x === size - 7 ||
-          y === size - 7 ||
-          x === size - 1 ||
-          y === size - 1);
-      const finderCore =
-        inFinder &&
-        ((x >= 2 && x <= 4 && y >= 2 && y <= 4) ||
-          (x >= size - 5 && x <= size - 3 && y >= 2 && y <= 4) ||
-          (x >= 2 && x <= 4 && y >= size - 5 && y <= size - 3));
-      const bit = ((hash >> ((x + y * 3) % 23)) ^ (x * 17 + y * 29 + hash)) & 1;
-      const on = finderBorder || finderCore || (!inFinder && bit && (x + y) % 3 !== 0);
-      if (on) {
-        images.push("linear-gradient(#070808, #070808)");
-        positions.push(`${x * 4}% ${y * 4}%`);
-      }
-    }
-  }
   element.style.backgroundColor = "#f6f1e8";
-  element.style.backgroundImage = images.join(",");
-  element.style.backgroundPosition = positions.join(",");
-  element.style.backgroundSize = "4% 4%";
-  element.style.backgroundRepeat = "no-repeat";
   element.title = value;
 }
 
@@ -175,7 +110,6 @@ function appendHighlightedText(parent, text, highlights) {
     parent.append(document.createTextNode(text));
     return;
   }
-
   const normalizedText = text.toLocaleLowerCase(activeLanguage);
   const ordered = [...highlights].sort((a, b) => b.text.length - a.text.length);
   let cursor = 0;
@@ -189,16 +123,13 @@ function appendHighlightedText(parent, text, highlights) {
         next = { ...highlight, index };
       }
     }
-
     if (!next) {
       parent.append(document.createTextNode(text.slice(cursor)));
       break;
     }
-
     if (next.index > cursor) {
       parent.append(document.createTextNode(text.slice(cursor, next.index)));
     }
-
     const span = document.createElement("span");
     span.className = `title-highlight title-highlight--${next.tone}`;
     span.textContent = text.slice(next.index, next.index + next.text.length);
@@ -209,17 +140,14 @@ function appendHighlightedText(parent, text, highlights) {
 
 function renderTitle(moment, copy) {
   titleEl.replaceChildren();
-  const parent =
-    moment.state === "qr"
-      ? Object.assign(document.createElement("a"), {
-          href: CONFIG.qr.socialUrl,
-          target: "_blank",
-          rel: "noopener noreferrer",
-        })
-      : titleEl;
-
+  const parent = moment.state === "qr"
+    ? Object.assign(document.createElement("a"), {
+        href: CONFIG.qr.socialUrl,
+        target: "_blank",
+        rel: "noopener noreferrer",
+      })
+    : titleEl;
   appendHighlightedText(parent, copy.title, highlightsFor(moment));
-
   if (moment.state === "qr") {
     titleEl.append(parent);
   }
@@ -231,7 +159,7 @@ function updateLanguageUi() {
     const isActive = button.dataset.language === activeLanguage;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
-    button.textContent = languageLabels[button.dataset.language] || button.dataset.language.toUpperCase();
+    button.textContent = window.languageLabels[button.dataset.language] || button.dataset.language.toUpperCase();
   }
   const qrLabels = CONFIG.qr.labels?.[activeLanguage] || CONFIG.qr.labels?.[CONFIG.defaultLanguage] || {};
   qrMemoryLabel.textContent = qrLabels.memory || "Memorias";
@@ -265,7 +193,6 @@ function setAsset(moment) {
     }
     return;
   }
-
   assetFrame.classList.remove("is-visible");
   assetClearTimer = window.setTimeout(() => {
     if (!assetFrame.classList.contains("is-visible")) {
@@ -294,8 +221,6 @@ function setMoment(index) {
     copyLayer.classList.toggle("is-qr", moment.state === "qr");
     copyLayer.classList.toggle("has-asset", hasImageAsset && !hasBackgroundAsset);
     copyLayer.classList.toggle("has-background-asset", hasBackgroundAsset);
-    copyLayer.classList.toggle("is-long", copy.title.length > 74);
-    copyLayer.classList.toggle("is-very-long", copy.title.length > 104);
     kickerEl.textContent = copy.kicker || CONFIG.brandLine;
     renderTitle(moment, copy);
     subtitleEl.textContent = copy.subtitle || "";
@@ -309,31 +234,18 @@ function setMoment(index) {
   visualSystem.setMoment(moment);
 }
 
-function nextMoment() {
-  setMoment(activeIndex + 1);
-}
-
-function previousMoment() {
-  setMoment(activeIndex - 1);
-}
+function nextMoment() { setMoment(activeIndex + 1); }
+function previousMoment() { setMoment(activeIndex - 1); }
 
 async function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    await stage.requestFullscreen();
-  } else {
-    await document.exitFullscreen();
-  }
+  if (!document.fullscreenElement) { await stage.requestFullscreen(); } 
+  else { await document.exitFullscreen(); }
 }
 
 function toggleHelp() {
   showHelp = !showHelp;
-  updateHelpUi();
-}
-
-function updateHelpUi() {
   helpPanel.classList.toggle("is-hidden", !showHelp);
   helpButton.setAttribute("aria-pressed", String(showHelp));
-  helpButton.setAttribute("aria-label", showHelp ? "Ocultar ayuda" : "Mostrar ayuda");
 }
 
 function tick() {
@@ -360,38 +272,11 @@ for (const button of languageButtons) {
 
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
-  if (key === "arrowright" || key === " ") {
-    event.preventDefault();
-    nextMoment();
-  }
-  if (key === "arrowleft") {
-    event.preventDefault();
-    previousMoment();
-  }
-  if (key === "f") {
-    event.preventDefault();
-    toggleFullscreen();
-  }
-  if (key === "h") {
-    event.preventDefault();
-    toggleHelp();
-  }
-  if (key === "r") {
-    event.preventDefault();
-    setMoment(0);
-  }
-});
-
-let touchStartX = 0;
-stage.addEventListener("touchstart", (event) => {
-  touchStartX = event.changedTouches[0].clientX;
-});
-
-stage.addEventListener("touchend", (event) => {
-  const delta = event.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(delta) < 42) return;
-  if (delta < 0) nextMoment();
-  else previousMoment();
+  if (key === "arrowright" || key === " ") { event.preventDefault(); nextMoment(); }
+  if (key === "arrowleft") { event.preventDefault(); previousMoment(); }
+  if (key === "f") { event.preventDefault(); toggleFullscreen(); }
+  if (key === "h") { event.preventDefault(); toggleHelp(); }
+  if (key === "r") { event.preventDefault(); setMoment(0); }
 });
 
 totalEl.textContent = String(moments.length);
@@ -401,6 +286,5 @@ qrSocialLink.href = CONFIG.qr.socialUrl;
 makeQrPattern(qrMemory, CONFIG.qr.memoryUrl, CONFIG.qr.memoryImage);
 makeQrPattern(qrSocial, CONFIG.qr.socialUrl, CONFIG.qr.socialImage);
 updateLanguageUi();
-updateHelpUi();
 setMoment(0);
 tick();

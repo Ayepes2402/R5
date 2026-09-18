@@ -68,7 +68,7 @@ window.CONFIG = {
     ink: "#f7f7f4",
     eventCyan: "#08a9dd",
     eventRed: "#f7353f",
-    eventMagenta: "#e96daa",
+    eventMagenta: "#9b59b6",
     eventBlack: "#222326",
     eventSilver: "#dde2e6",
     forumGold: "#d6a94f",
